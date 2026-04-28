@@ -27,9 +27,9 @@
     90%  { opacity:1; }
     100% { transform: translateX(-60px) scaleX(-1); opacity:0; }
   }
-  .fish { animation: swim 5s ease-in-out infinite; position:absolute; font-size:1.6rem; }
-  .fish-2 { animation: swim 7s ease-in-out infinite 2s; font-size:1.1rem; top:55%; }
-  .fish-3 { animation: swim 6s ease-in-out infinite 3.5s; font-size:.9rem; top:70%; }
+  .fish   { animation: swim 5s ease-in-out infinite; position:absolute; font-size:1.6rem; }
+  .fish-2 { animation: swim 7s ease-in-out infinite 2s;   font-size:1.1rem; top:55%; }
+  .fish-3 { animation: swim 6s ease-in-out infinite 3.5s; font-size:.9rem;  top:70%; }
 
   /* ── tap button pulse ── */
   @keyframes btnPulse {
@@ -38,13 +38,16 @@
   }
   .btn-pulse { animation: btnPulse 2s infinite; }
 
+  /* ── lang switcher ── */
+  .lang-btn { transition: all .2s; }
+  .lang-btn.active { background:#1d4ed8; color:#fff; }
+
   /* ── transition overlay ── */
   #overlay {
     position:fixed; inset:0; z-index:999;
-    background: radial-gradient(circle at center, #0ea5e9 0%, #0c4a6e 60%, #000 100%);
+    background: radial-gradient(circle at center,#1d4ed8 0%,#1e3a8a 60%,#000 100%);
     display:flex; flex-direction:column; align-items:center; justify-content:center;
-    opacity:0; pointer-events:none;
-    transition: opacity .3s;
+    opacity:0; pointer-events:none; transition: opacity .3s;
   }
   #overlay.active { opacity:1; pointer-events:all; }
 
@@ -52,7 +55,7 @@
     0%   { transform:scale(0); opacity:1; }
     100% { transform:scale(4); opacity:0; }
   }
-  .sonar { animation: sonarRing 1.2s ease-out infinite; }
+  .sonar   { animation: sonarRing 1.2s ease-out infinite; }
   .sonar-2 { animation: sonarRing 1.2s ease-out infinite .4s; }
   .sonar-3 { animation: sonarRing 1.2s ease-out infinite .8s; }
 
@@ -80,9 +83,7 @@
   .pdot { animation: pulseDot 2s infinite; }
 
   /* ── path draw ── */
-  @keyframes drawPath {
-    to { stroke-dashoffset:0; }
-  }
+  @keyframes drawPath { to { stroke-dashoffset:0; } }
   .draw { stroke-dasharray:600; stroke-dashoffset:600; animation: drawPath 2.5s ease-out forwards 1s; }
 
   .card { transition: transform .3s, box-shadow .3s; }
@@ -93,120 +94,134 @@
 </head>
 <body class="flex items-center justify-center min-h-screen">
 
-<!-- ════════════════════════════════
-     TRANSITION OVERLAY
-════════════════════════════════ -->
+<!-- ════ TRANSITION OVERLAY ════ -->
 <div id="overlay">
-  <div class="relative w-32 h-32 flex items-center justify-center mb-6">
-    <div class="absolute w-20 h-20 rounded-full border-4 border-sky-300 sonar"></div>
-    <div class="absolute w-20 h-20 rounded-full border-4 border-sky-300 sonar-2"></div>
-    <div class="absolute w-20 h-20 rounded-full border-4 border-sky-300 sonar-3"></div>
-    <div id="overlayIcon" class="relative z-10 text-5xl">📡</div>
+  <img src="https://d41chssnpqdne.cloudfront.net/user_upload_by_module/chat_bot/files/7904397/M2nADRjEn9wtQnCz.png?Expires=1778600165&Signature=jq2RfP-vsRxKIqpoPemHfWV-VE-Ul9YOVYoBEMKugtcLrsumAXnwfqsStBq8095N9uM4u5e1bXl1GqifQHv6vTQo79nwtCdAHgS7YLXWuPaMV-QKS1dDnzQUnp9XaqR5VD49aujWPyZ9GH66dydTI4YWxNlTW2JGv-wAukjJJCge8t0oVTWkD5p8vhjVKz6CxbizvwcASW-6OTcHpjeJVDtNfVkIMTiJtjPQzupiBKKRRl4tbFhcmhkl-j2bvdkKjoM0gAdddPLJtwnZR795Xa8jyLnXjShNmMETeod4SjGtty9lmVxArek41iyFrMT58ATM7kybKRugSl6eqVCn0A__&Key-Pair-Id=K3USGZIKWMDCSX"
+       class="w-40 mb-6 rounded-2xl shadow-2xl" style="filter:brightness(1.1)"/>
+  <div class="relative w-24 h-24 flex items-center justify-center mb-4">
+    <div class="absolute w-16 h-16 rounded-full border-4 border-blue-300 sonar"></div>
+    <div class="absolute w-16 h-16 rounded-full border-4 border-blue-300 sonar-2"></div>
+    <div class="absolute w-16 h-16 rounded-full border-4 border-blue-300 sonar-3"></div>
+    <div id="overlayIcon" class="relative z-10 text-4xl">📡</div>
   </div>
   <p id="overlayText" class="text-white text-xl font-black tracking-widest">讀取中…</p>
-  <p class="text-sky-300 text-sm mt-2">正在驗證溯源資料</p>
+  <p class="text-blue-300 text-sm mt-2" id="overlaySubText">正在驗證溯源資料</p>
 </div>
 
-<!-- ════════════════════════════════
-     PHONE SHELL
-════════════════════════════════ -->
+<!-- ════ PHONE SHELL ════ -->
 <div class="w-full max-w-sm bg-white min-h-screen shadow-2xl relative overflow-hidden rounded-3xl">
 
-  <!-- ══════ SCREEN 1 : NFC TAP ══════ -->
+  <!-- ══ SCREEN 1: NFC TAP ══ -->
   <section id="screen1" class="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden"
-           style="background: linear-gradient(160deg,#0c1a2e 0%,#0e3a5c 50%,#0c1a2e 100%)">
+           style="background:linear-gradient(160deg,#0c1a2e 0%,#1e3a8a 50%,#0c1a2e 100%)">
 
     <!-- floating fish -->
     <div class="fish" style="top:30%">🐟</div>
     <div class="fish-2">🐠</div>
     <div class="fish-3">🦐</div>
 
-    <!-- stars / bubbles -->
+    <!-- stars -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
       <div class="absolute w-1 h-1 bg-white rounded-full opacity-60" style="top:15%;left:20%"></div>
-      <div class="absolute w-1.5 h-1.5 bg-sky-300 rounded-full opacity-40" style="top:25%;left:75%"></div>
+      <div class="absolute w-1.5 h-1.5 bg-blue-300 rounded-full opacity-40" style="top:25%;left:75%"></div>
       <div class="absolute w-1 h-1 bg-white rounded-full opacity-50" style="top:60%;left:10%"></div>
-      <div class="absolute w-1 h-1 bg-cyan-300 rounded-full opacity-60" style="top:80%;left:85%"></div>
+      <div class="absolute w-1 h-1 bg-blue-200 rounded-full opacity-60" style="top:80%;left:85%"></div>
     </div>
 
-    <!-- logo -->
-    <div class="text-center mb-10 z-10">
-      <div class="text-5xl mb-2">🐚</div>
-      <h1 class="text-5xl font-black text-white tracking-widest">漁跡</h1>
-      <p class="text-sky-300 font-medium mt-1 tracking-wider">Fish n' Check · 一碰溯源</p>
+    <!-- Lang switcher -->
+    <div class="absolute top-5 right-5 flex bg-white/10 backdrop-blur rounded-full p-1 gap-1 z-20">
+      <button onclick="setLang('zh-HK')" id="btn-zh-HK" class="lang-btn active text-xs px-2.5 py-1 rounded-full font-bold text-white">繁</button>
+      <button onclick="setLang('zh-CN')" id="btn-zh-CN" class="lang-btn text-xs px-2.5 py-1 rounded-full font-bold text-white">簡</button>
+      <button onclick="setLang('en')"    id="btn-en"    class="lang-btn text-xs px-2.5 py-1 rounded-full font-bold text-white">EN</button>
+    </div>
+
+    <!-- Logo -->
+    <div class="z-10 mb-8 text-center">
+      <img src="https://d41chssnpqdne.cloudfront.net/user_upload_by_module/chat_bot/files/7904397/M2nADRjEn9wtQnCz.png?Expires=1778600165&Signature=jq2RfP-vsRxKIqpoPemHfWV-VE-Ul9YOVYoBEMKugtcLrsumAXnwfqsStBq8095N9uM4u5e1bXl1GqifQHv6vTQo79nwtCdAHgS7YLXWuPaMV-QKS1dDnzQUnp9XaqR5VD49aujWPyZ9GH66dydTI4YWxNlTW2JGv-wAukjJJCge8t0oVTWkD5p8vhjVKz6CxbizvwcASW-6OTcHpjeJVDtNfVkIMTiJtjPQzupiBKKRRl4tbFhcmhkl-j2bvdkKjoM0gAdddPLJtwnZR795Xa8jyLnXjShNmMETeod4SjGtty9lmVxArek41iyFrMT58ATM7kybKRugSl6eqVCn0A__&Key-Pair-Id=K3USGZIKWMDCSX"
+           class="w-52 mx-auto drop-shadow-2xl" style="filter: brightness(0) invert(1)"/>
+      <p id="s1-tagline" class="text-blue-300 text-sm mt-3 tracking-wider font-medium">一碰溯源 · 安心消費</p>
     </div>
 
     <!-- NFC icon cluster -->
-    <div class="relative w-52 h-52 flex items-center justify-center z-10 mb-8">
-      <!-- ripple rings -->
-      <div class="absolute w-28 h-28 rounded-full bg-sky-400 opacity-20 ripple"></div>
-      <div class="absolute w-28 h-28 rounded-full bg-sky-400 opacity-20 ripple-2"></div>
-      <div class="absolute w-28 h-28 rounded-full bg-sky-400 opacity-20 ripple-3"></div>
-
-      <!-- main circle -->
-      <div class="relative w-28 h-28 rounded-full flex items-center justify-center shadow-2xl"
-           style="background:linear-gradient(135deg,#0ea5e9,#0891b2)">
-        <!-- Custom NFC icon: hand holding phone with waves -->
-        <svg viewBox="0 0 64 64" class="w-16 h-16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- phone body -->
+    <div class="relative w-48 h-48 flex items-center justify-center z-10 mb-8">
+      <div class="absolute w-24 h-24 rounded-full bg-blue-400 opacity-20 ripple"></div>
+      <div class="absolute w-24 h-24 rounded-full bg-blue-400 opacity-20 ripple-2"></div>
+      <div class="absolute w-24 h-24 rounded-full bg-blue-400 opacity-20 ripple-3"></div>
+      <div class="relative w-24 h-24 rounded-full flex items-center justify-center shadow-2xl"
+           style="background:linear-gradient(135deg,#1d4ed8,#1e40af)">
+        <svg viewBox="0 0 64 64" class="w-14 h-14" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect x="20" y="28" width="18" height="26" rx="3" fill="white" opacity="0.95"/>
-          <rect x="22" y="31" width="14" height="18" rx="1" fill="#0ea5e9" opacity="0.6"/>
+          <rect x="22" y="31" width="14" height="18" rx="1" fill="#1d4ed8" opacity="0.6"/>
           <circle cx="29" cy="51" r="1.2" fill="white"/>
-          <!-- NFC arc waves emanating right -->
           <path d="M41 36 Q47 40 41 44" stroke="white" stroke-width="2.2" stroke-linecap="round" fill="none" opacity="0.9"/>
           <path d="M44 33 Q53 40 44 47" stroke="white" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.65"/>
           <path d="M47 30 Q59 40 47 50" stroke="white" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.4"/>
-          <!-- tag chip on left -->
           <rect x="8" y="37" width="10" height="7" rx="2" fill="white" opacity="0.85"/>
-          <line x1="11" y1="37" x2="11" y2="44" stroke="#0ea5e9" stroke-width="1"/>
-          <line x1="14" y1="37" x2="14" y2="44" stroke="#0ea5e9" stroke-width="1"/>
-          <line x1="8" y1="40.5" x2="18" y2="40.5" stroke="#0ea5e9" stroke-width="1"/>
+          <line x1="11" y1="37" x2="11" y2="44" stroke="#1d4ed8" stroke-width="1"/>
+          <line x1="14" y1="37" x2="14" y2="44" stroke="#1d4ed8" stroke-width="1"/>
+          <line x1="8" y1="40.5" x2="18" y2="40.5" stroke="#1d4ed8" stroke-width="1"/>
         </svg>
       </div>
     </div>
 
-    <p class="text-white text-lg font-bold z-10 mb-1">靠近 NFC 標籤</p>
-    <p class="text-sky-400 text-sm z-10 mb-8">Tap your phone on the seafood tag</p>
+    <p id="s1-instruction" class="text-white text-lg font-bold z-10 mb-1">靠近 NFC 標籤</p>
+    <p id="s1-sub"         class="text-blue-400 text-sm z-10 mb-8">Tap your phone on the seafood tag</p>
 
     <button onclick="startTransition()"
             class="btn-pulse z-10 px-10 py-4 rounded-full font-black text-lg text-white shadow-xl"
-            style="background:linear-gradient(135deg,#0ea5e9,#06b6d4)">
-      📲 模擬一碰
+            style="background:linear-gradient(135deg,#1d4ed8,#2563eb)">
+      <span id="s1-btn">📲 模擬一碰</span>
     </button>
   </section>
 
-  <!-- ══════ SCREEN 2 : 溯源履歷 ══════ -->
+  <!-- ══ SCREEN 2: 溯源履歷 ══ -->
   <section id="screen2" class="hidden min-h-screen bg-slate-50">
 
     <!-- hero -->
     <div class="relative text-white p-6 pb-20 overflow-hidden"
-         style="background:linear-gradient(135deg,#0369a1,#0891b2,#0e7490)">
+         style="background:linear-gradient(135deg,#1e3a8a,#1d4ed8,#2563eb)">
       <svg class="absolute bottom-0 left-0 w-full" viewBox="0 0 400 50" preserveAspectRatio="none">
         <path d="M0,30 Q100,0 200,25 Q300,50 400,20 L400,50 L0,50Z" fill="#f8fafc"/>
       </svg>
 
+      <!-- top bar -->
       <div class="flex items-center justify-between mb-4 fade-in d1">
-        <button onclick="showScreen1()" class="text-white/70 text-sm hover:text-white">← 返回</button>
-        <div class="flex items-center bg-emerald-500 px-3 py-1 rounded-full text-xs font-bold shadow">
-          <span class="w-2 h-2 bg-white rounded-full mr-1.5 animate-pulse"></span>已認證 ✓
+        <button onclick="showScreen1()" class="text-white/70 text-sm hover:text-white">← <span class="t" data-key="back"></span></button>
+        <div class="flex items-center gap-2">
+          <!-- lang switcher screen2 -->
+          <div class="flex bg-white/20 backdrop-blur rounded-full p-0.5 gap-0.5">
+            <button onclick="setLang('zh-HK')" id="btn2-zh-HK" class="lang-btn active text-xs px-2 py-0.5 rounded-full font-bold text-white">繁</button>
+            <button onclick="setLang('zh-CN')" id="btn2-zh-CN" class="lang-btn text-xs px-2 py-0.5 rounded-full font-bold text-white">簡</button>
+            <button onclick="setLang('en')"    id="btn2-en"    class="lang-btn text-xs px-2 py-0.5 rounded-full font-bold text-white">EN</button>
+          </div>
+          <div class="flex items-center bg-emerald-500 px-3 py-1 rounded-full text-xs font-bold shadow">
+            <span class="w-2 h-2 bg-white rounded-full mr-1.5 animate-pulse"></span>
+            <span class="t" data-key="verified"></span>
+          </div>
         </div>
       </div>
 
+      <!-- logo small -->
+      <div class="mb-3 fade-in d1">
+        <img src="https://d41chssnpqdne.cloudfront.net/user_upload_by_module/chat_bot/files/7904397/M2nADRjEn9wtQnCz.png?Expires=1778600165&Signature=jq2RfP-vsRxKIqpoPemHfWV-VE-Ul9YOVYoBEMKugtcLrsumAXnwfqsStBq8095N9uM4u5e1bXl1GqifQHv6vTQo79nwtCdAHgS7YLXWuPaMV-QKS1dDnzQUnp9XaqR5VD49aujWPyZ9GH66dydTI4YWxNlTW2JGv-wAukjJJCge8t0oVTWkD5p8vhjVKz6CxbizvwcASW-6OTcHpjeJVDtNfVkIMTiJtjPQzupiBKKRRl4tbFhcmhkl-j2bvdkKjoM0gAdddPLJtwnZR795Xa8jyLnXjShNmMETeod4SjGtty9lmVxArek41iyFrMT58ATM7kybKRugSl6eqVCn0A__&Key-Pair-Id=K3USGZIKWMDCSX"
+             class="h-8" style="filter:brightness(0) invert(1) opacity(.85)"/>
+      </div>
+
       <div class="fade-in d2">
-        <p class="text-sky-200 text-sm mb-1">澳洲進口 · 活體直送 · 冷鏈全程</p>
-        <h2 class="text-3xl font-black mb-1">澳洲藍龍蝦 🦞</h2>
-        <p class="text-sky-100 text-sm opacity-80">Australian Blue Lobster</p>
+        <p class="text-blue-200 text-sm mb-1"><span class="t" data-key="origin"></span></p>
+        <h2 class="text-3xl font-black mb-1"><span class="t" data-key="productName"></span></h2>
+        <p class="text-blue-100 text-sm opacity-80"><span class="t" data-key="productNameEn"></span></p>
       </div>
 
       <div class="grid grid-cols-3 gap-3 mt-4 fade-in d3">
         <div class="bg-white/20 backdrop-blur rounded-xl p-2 text-center">
-          <p class="text-xs text-sky-100">重量</p><p class="font-black">1.2 kg</p>
+          <p class="text-xs text-blue-100"><span class="t" data-key="weight"></span></p><p class="font-black">1.2 kg</p>
         </div>
         <div class="bg-white/20 backdrop-blur rounded-xl p-2 text-center">
-          <p class="text-xs text-sky-100">產地</p><p class="font-black">西澳洲</p>
+          <p class="text-xs text-blue-100"><span class="t" data-key="origin2"></span></p><p class="font-black"><span class="t" data-key="originVal"></span></p>
         </div>
         <div class="bg-white/20 backdrop-blur rounded-xl p-2 text-center">
-          <p class="text-xs text-sky-100">鮮活度</p><p class="font-black">A+</p>
+          <p class="text-xs text-blue-100"><span class="t" data-key="freshness"></span></p><p class="font-black">A+</p>
         </div>
       </div>
     </div>
@@ -216,165 +231,290 @@
       <!-- 溯源時間軸 -->
       <div class="bg-white rounded-2xl shadow-lg p-5 mb-4 card fade-in d3">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="font-black text-lg text-slate-800">🗺️ 溯源履歷</h3>
-          <span class="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">2分鐘前更新</span>
+          <h3 class="font-black text-lg text-slate-800">🗺️ <span class="t" data-key="traceTitle"></span></h3>
+          <span class="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full"><span class="t" data-key="updated"></span></span>
         </div>
         <div class="relative pl-8">
-          <div class="absolute left-3 top-2 bottom-2 w-0.5 bg-gradient-to-b from-sky-500 via-cyan-400 to-emerald-500 rounded-full"></div>
+          <div class="absolute left-3 top-2 bottom-2 w-0.5 bg-gradient-to-b from-blue-600 via-blue-400 to-emerald-500 rounded-full"></div>
 
           <div class="relative mb-5">
-            <div class="absolute -left-8 top-0 w-6 h-6 bg-sky-500 rounded-full flex items-center justify-center text-xs shadow">🌊</div>
+            <div class="absolute -left-8 top-0 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-xs shadow">🌊</div>
             <p class="text-xs text-slate-400">2026-04-23 · 05:30</p>
-            <p class="font-bold text-slate-800">源頭捕撈</p>
-            <p class="text-sm text-slate-500">西澳洲 Geraldton 海域 · 33°S 114°E</p>
+            <p class="font-bold text-slate-800"><span class="t" data-key="step1"></span></p>
+            <p class="text-sm text-slate-500"><span class="t" data-key="step1d"></span></p>
           </div>
           <div class="relative mb-5">
-            <div class="absolute -left-8 top-0 w-6 h-6 bg-cyan-500 rounded-full flex items-center justify-center text-xs shadow">✈️</div>
+            <div class="absolute -left-8 top-0 w-6 h-6 bg-blue-400 rounded-full flex items-center justify-center text-xs shadow">✈️</div>
             <p class="text-xs text-slate-400">2026-04-24 · 14:00</p>
-            <p class="font-bold text-slate-800">空運抵港</p>
-            <p class="text-sm text-slate-500">香港國際機場 · 冷鏈 4°C 全程</p>
+            <p class="font-bold text-slate-800"><span class="t" data-key="step2"></span></p>
+            <p class="text-sm text-slate-500"><span class="t" data-key="step2d"></span></p>
           </div>
           <div class="relative mb-5">
-            <div class="absolute -left-8 top-0 w-6 h-6 bg-teal-500 rounded-full flex items-center justify-center text-xs shadow">🔍</div>
+            <div class="absolute -left-8 top-0 w-6 h-6 bg-indigo-500 rounded-full flex items-center justify-center text-xs shadow">🔍</div>
             <p class="text-xs text-slate-400">2026-04-24 · 16:30</p>
-            <p class="font-bold text-slate-800">海關檢疫通過</p>
-            <p class="text-sm text-slate-500">香港食環署 · 證書 HK-20260424-8823</p>
+            <p class="font-bold text-slate-800"><span class="t" data-key="step3"></span></p>
+            <p class="text-sm text-slate-500"><span class="t" data-key="step3d"></span></p>
           </div>
           <div class="relative mb-5">
-            <div class="absolute -left-8 top-0 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center text-xs shadow">🏪</div>
+            <div class="absolute -left-8 top-0 w-6 h-6 bg-teal-500 rounded-full flex items-center justify-center text-xs shadow">🏪</div>
             <p class="text-xs text-slate-400">2026-04-25 · 08:00</p>
-            <p class="font-bold text-slate-800">抵達零售點</p>
-            <p class="text-sm text-slate-500">中環街市 · 陳記海鮮檔 B-12</p>
+            <p class="font-bold text-slate-800"><span class="t" data-key="step4"></span></p>
+            <p class="text-sm text-slate-500"><span class="t" data-key="step4d"></span></p>
           </div>
           <div class="relative">
-            <div class="absolute -left-8 top-0 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-xs shadow pdot">📱</div>
-            <p class="text-xs text-green-600 font-bold">剛剛 · YOU ARE HERE</p>
-            <p class="font-bold text-slate-800">消費者查驗</p>
-            <p class="text-sm text-slate-500">第 1,247 次掃碼</p>
+            <div class="absolute -left-8 top-0 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center text-xs shadow pdot">📱</div>
+            <p class="text-xs text-emerald-600 font-bold"><span class="t" data-key="youAreHere"></span></p>
+            <p class="font-bold text-slate-800"><span class="t" data-key="step5"></span></p>
+            <p class="text-sm text-slate-500"><span class="t" data-key="step5d"></span></p>
           </div>
         </div>
       </div>
 
       <!-- 路徑地圖 -->
       <div class="bg-white rounded-2xl shadow-lg p-5 mb-4 card fade-in d4">
-        <h3 class="font-black text-lg text-slate-800 mb-3">📍 運輸路徑</h3>
-        <div class="relative bg-gradient-to-br from-sky-50 to-blue-100 rounded-xl overflow-hidden" style="height:140px">
+        <h3 class="font-black text-lg text-slate-800 mb-3">📍 <span class="t" data-key="routeTitle"></span></h3>
+        <div class="relative bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl overflow-hidden" style="height:140px">
           <svg viewBox="0 0 300 140" class="w-full h-full">
-            <path d="M 35 100 Q 160 15 265 45" stroke="#0ea5e9" stroke-width="2.5" fill="none" stroke-dasharray="6,4" class="draw"/>
-            <circle cx="35" cy="100" r="7" fill="#0ea5e9"/>
-            <text x="35" y="120" text-anchor="middle" font-size="10" fill="#0c4a6e" font-weight="bold">🇦🇺 澳洲</text>
+            <path d="M 35 100 Q 160 15 265 45" stroke="#1d4ed8" stroke-width="2.5" fill="none" stroke-dasharray="6,4" class="draw"/>
+            <circle cx="35" cy="100" r="7" fill="#1d4ed8"/>
+            <text x="35" y="120" text-anchor="middle" font-size="10" fill="#1e3a8a" font-weight="bold">🇦🇺 <tspan class="t" data-key="aus"></tspan></text>
             <text x="150" y="30" text-anchor="middle" font-size="12">✈️</text>
             <circle cx="265" cy="45" r="10" fill="#10b981">
               <animate attributeName="r" values="10;14;10" dur="1.5s" repeatCount="indefinite"/>
             </circle>
-            <text x="265" y="68" text-anchor="middle" font-size="10" fill="#064e3b" font-weight="bold">🇭🇰 香港</text>
+            <text x="265" y="68" text-anchor="middle" font-size="10" fill="#064e3b" font-weight="bold">🇭🇰 <tspan class="t" data-key="hk"></tspan></text>
           </svg>
-          <div class="absolute top-2 right-2 bg-white/80 backdrop-blur px-2 py-1 rounded-lg text-xs font-bold text-slate-700">❄️ 全程冷鏈</div>
+          <div class="absolute top-2 right-2 bg-white/80 backdrop-blur px-2 py-1 rounded-lg text-xs font-bold text-slate-700">❄️ <span class="t" data-key="coldChain"></span></div>
         </div>
         <div class="grid grid-cols-3 gap-2 mt-3 text-center">
-          <div><p class="text-xs text-slate-400">總距離</p><p class="font-black text-sm">7,892 km</p></div>
-          <div><p class="text-xs text-slate-400">運輸時長</p><p class="font-black text-sm">32 小時</p></div>
-          <div><p class="text-xs text-slate-400">恆溫</p><p class="font-black text-sm">4°C</p></div>
+          <div><p class="text-xs text-slate-400"><span class="t" data-key="distance"></span></p><p class="font-black text-sm">7,892 km</p></div>
+          <div><p class="text-xs text-slate-400"><span class="t" data-key="duration"></span></p><p class="font-black text-sm">32 <span class="t" data-key="hrs"></span></p></div>
+          <div><p class="text-xs text-slate-400"><span class="t" data-key="temp"></span></p><p class="font-black text-sm">4°C</p></div>
         </div>
       </div>
 
       <!-- 商戶認證 -->
-      <div class="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-2xl p-4 mb-4 card fade-in d4">
+      <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-2xl p-4 mb-4 card fade-in d4">
         <div class="flex items-center">
-          <div class="w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-lg mr-3"
-               style="background:linear-gradient(135deg,#f59e0b,#ea580c)">🏆</div>
+          <div class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg mr-3 overflow-hidden bg-white p-1">
+            <img src="https://d41chssnpqdne.cloudfront.net/user_upload_by_module/chat_bot/files/7904397/M2nADRjEn9wtQnCz.png?Expires=1778600165&Signature=jq2RfP-vsRxKIqpoPemHfWV-VE-Ul9YOVYoBEMKugtcLrsumAXnwfqsStBq8095N9uM4u5e1bXl1GqifQHv6vTQo79nwtCdAHgS7YLXWuPaMV-QKS1dDnzQUnp9XaqR5VD49aujWPyZ9GH66dydTI4YWxNlTW2JGv-wAukjJJCge8t0oVTWkD5p8vhjVKz6CxbizvwcASW-6OTcHpjeJVDtNfVkIMTiJtjPQzupiBKKRRl4tbFhcmhkl-j2bvdkKjoM0gAdddPLJtwnZR795Xa8jyLnXjShNmMETeod4SjGtty9lmVxArek41iyFrMT58ATM7kybKRugSl6eqVCn0A__&Key-Pair-Id=K3USGZIKWMDCSX" class="w-full"/>
+          </div>
           <div class="flex-1">
-            <p class="text-xs text-amber-700 font-bold">漁跡認證商戶</p>
-            <p class="font-black text-slate-800">陳記海鮮檔</p>
+            <p class="text-xs text-blue-700 font-bold"><span class="t" data-key="certMerchant"></span></p>
+            <p class="font-black text-slate-800"><span class="t" data-key="merchantName"></span></p>
             <div class="flex items-center text-xs text-slate-500 mt-0.5">
               <span class="text-yellow-400">⭐⭐⭐⭐⭐</span>
-              <span class="ml-1">4.9 · 2,341 則評價</span>
+              <span class="ml-1">4.9 · 2,341 <span class="t" data-key="reviews"></span></span>
             </div>
           </div>
-          <button class="bg-amber-500 text-white text-xs px-3 py-1.5 rounded-full font-bold">查看</button>
+          <button class="text-white text-xs px-3 py-1.5 rounded-full font-bold" style="background:#1d4ed8"><span class="t" data-key="view"></span></button>
         </div>
       </div>
 
       <!-- 烹飪教學 -->
       <div class="bg-white rounded-2xl shadow-lg p-5 mb-4 card fade-in d5">
-        <h3 class="font-black text-lg text-slate-800 mb-3">👨‍🍳 專屬烹飪教學</h3>
+        <h3 class="font-black text-lg text-slate-800 mb-3">👨‍🍳 <span class="t" data-key="cookTitle"></span></h3>
         <div class="grid grid-cols-2 gap-3">
-          <div class="relative rounded-xl overflow-hidden h-24 flex items-end p-2 cursor-pointer hover:scale-105 transition"
-               style="background:linear-gradient(135deg,#ef4444,#ec4899)">
-            <div class="absolute inset-0 flex items-center justify-center">
-              <div class="w-10 h-10 bg-white/30 backdrop-blur rounded-full flex items-center justify-center text-lg">▶️</div>
-            </div>
-            <p class="text-white text-xs font-bold relative z-10">蒜蓉粉絲蒸龍蝦</p>
+          <div class="relative rounded-xl overflow-hidden h-24 flex items-end p-2 cursor-pointer hover:scale-105 transition" style="background:linear-gradient(135deg,#ef4444,#ec4899)">
+            <div class="absolute inset-0 flex items-center justify-center"><div class="w-10 h-10 bg-white/30 backdrop-blur rounded-full flex items-center justify-center text-lg">▶️</div></div>
+            <p class="text-white text-xs font-bold relative z-10"><span class="t" data-key="recipe1"></span></p>
           </div>
-          <div class="relative rounded-xl overflow-hidden h-24 flex items-end p-2 cursor-pointer hover:scale-105 transition"
-               style="background:linear-gradient(135deg,#f97316,#ef4444)">
-            <div class="absolute inset-0 flex items-center justify-center">
-              <div class="w-10 h-10 bg-white/30 backdrop-blur rounded-full flex items-center justify-center text-lg">▶️</div>
-            </div>
-            <p class="text-white text-xs font-bold relative z-10">芝士焗龍蝦</p>
+          <div class="relative rounded-xl overflow-hidden h-24 flex items-end p-2 cursor-pointer hover:scale-105 transition" style="background:linear-gradient(135deg,#f97316,#ef4444)">
+            <div class="absolute inset-0 flex items-center justify-center"><div class="w-10 h-10 bg-white/30 backdrop-blur rounded-full flex items-center justify-center text-lg">▶️</div></div>
+            <p class="text-white text-xs font-bold relative z-10"><span class="t" data-key="recipe2"></span></p>
           </div>
-          <div class="relative rounded-xl overflow-hidden h-24 flex items-end p-2 cursor-pointer hover:scale-105 transition"
-               style="background:linear-gradient(135deg,#eab308,#f97316)">
-            <div class="absolute inset-0 flex items-center justify-center">
-              <div class="w-10 h-10 bg-white/30 backdrop-blur rounded-full flex items-center justify-center text-lg">▶️</div>
-            </div>
-            <p class="text-white text-xs font-bold relative z-10">龍蝦刺身處理</p>
+          <div class="relative rounded-xl overflow-hidden h-24 flex items-end p-2 cursor-pointer hover:scale-105 transition" style="background:linear-gradient(135deg,#eab308,#f97316)">
+            <div class="absolute inset-0 flex items-center justify-center"><div class="w-10 h-10 bg-white/30 backdrop-blur rounded-full flex items-center justify-center text-lg">▶️</div></div>
+            <p class="text-white text-xs font-bold relative z-10"><span class="t" data-key="recipe3"></span></p>
           </div>
-          <div class="relative rounded-xl overflow-hidden h-24 flex items-end p-2 cursor-pointer hover:scale-105 transition"
-               style="background:linear-gradient(135deg,#22c55e,#0d9488)">
-            <div class="absolute inset-0 flex items-center justify-center">
-              <div class="w-10 h-10 bg-white/30 backdrop-blur rounded-full flex items-center justify-center text-lg">▶️</div>
-            </div>
-            <p class="text-white text-xs font-bold relative z-10">上湯焗龍蝦</p>
+          <div class="relative rounded-xl overflow-hidden h-24 flex items-end p-2 cursor-pointer hover:scale-105 transition" style="background:linear-gradient(135deg,#22c55e,#0d9488)">
+            <div class="absolute inset-0 flex items-center justify-center"><div class="w-10 h-10 bg-white/30 backdrop-blur rounded-full flex items-center justify-center text-lg">▶️</div></div>
+            <p class="text-white text-xs font-bold relative z-10"><span class="t" data-key="recipe4"></span></p>
           </div>
         </div>
       </div>
 
       <!-- VIP -->
-      <div class="rounded-2xl p-5 mb-4 card fade-in d5"
-           style="background:linear-gradient(135deg,#1e293b,#0f172a)">
+      <div class="rounded-2xl p-5 mb-4 card fade-in d5" style="background:linear-gradient(135deg,#1e293b,#0f172a)">
         <div class="flex items-center justify-between mb-2">
-          <h3 class="font-black text-lg text-white">💎 漁跡 VIP</h3>
-          <span class="text-xs bg-amber-400 text-slate-900 px-2 py-0.5 rounded-full font-bold">尊享</span>
+          <h3 class="font-black text-lg text-white">💎 Fish n' Check VIP</h3>
+          <span class="text-xs bg-amber-400 text-slate-900 px-2 py-0.5 rounded-full font-bold"><span class="t" data-key="exclusive"></span></span>
         </div>
-        <p class="text-slate-300 text-sm mb-3">稀缺海產預定 · 私廚上門 · 大師烹飪課</p>
-        <button class="w-full py-2.5 rounded-xl font-black text-slate-900"
-                style="background:linear-gradient(135deg,#fbbf24,#f97316)">立即加入 · HK$98/月</button>
+        <p class="text-slate-300 text-sm mb-3"><span class="t" data-key="vipDesc"></span></p>
+        <button class="w-full py-2.5 rounded-xl font-black text-slate-900" style="background:linear-gradient(135deg,#fbbf24,#f97316)">
+          <span class="t" data-key="joinVip"></span>
+        </button>
       </div>
 
       <!-- share -->
       <div class="grid grid-cols-2 gap-3 mb-4 fade-in d6">
-        <button class="bg-sky-100 text-sky-700 py-3 rounded-xl font-bold text-sm hover:bg-sky-200 transition">⭐ 評價此產品</button>
-        <button class="bg-green-100 text-green-700 py-3 rounded-xl font-bold text-sm hover:bg-green-200 transition">📤 分享溯源</button>
+        <button class="bg-blue-100 text-blue-700 py-3 rounded-xl font-bold text-sm hover:bg-blue-200 transition">⭐ <span class="t" data-key="rate"></span></button>
+        <button class="bg-green-100 text-green-700 py-3 rounded-xl font-bold text-sm hover:bg-green-200 transition">📤 <span class="t" data-key="share"></span></button>
       </div>
 
       <div class="text-center text-xs text-slate-400 pb-4 fade-in d6">
-        <p>由 <span class="font-bold text-sky-600">漁跡 Fish n' Check</span> 提供技術支援</p>
-        <p class="mt-1">© 2026 Fish n' Check Tech Ltd. · 掃碼編號 #001247</p>
+        <p><span class="t" data-key="poweredBy"></span></p>
+        <p class="mt-1">© 2026 Fish and Check Ltd. · <span class="t" data-key="scanNo"></span> #001247</p>
       </div>
     </div>
   </section>
-</div><!-- end phone -->
+</div>
 
 <script>
-  const overlay     = document.getElementById('overlay');
-  const overlayIcon = document.getElementById('overlayIcon');
-  const overlayText = document.getElementById('overlayText');
+  /* ══════════════════════════════
+     TRANSLATIONS
+  ══════════════════════════════ */
+  const LANG = {
+    'zh-HK': {
+      back:'返回', verified:'已認證 ✓',
+      origin:'澳洲進口 · 活體直送 · 冷鏈全程',
+      productName:'澳洲藍龍蝦 🦞', productNameEn:'Australian Blue Lobster',
+      weight:'重量', origin2:'產地', originVal:'西澳洲', freshness:'鮮活度',
+      traceTitle:'溯源履歷', updated:'2分鐘前更新',
+      step1:'源頭捕撈',    step1d:'西澳洲 Geraldton 海域 · 33°S 114°E',
+      step2:'空運抵港',    step2d:'香港國際機場 · 冷鏈 4°C 全程',
+      step3:'海關檢疫通過',step3d:'香港食環署 · 證書 HK-20260424-8823',
+      step4:'抵達零售點',  step4d:'中環街市 · 陳記海鮮檔 B-12',
+      youAreHere:'剛剛 · YOU ARE HERE',
+      step5:'消費者查驗',  step5d:'第 1,247 次掃碼',
+      routeTitle:'運輸路徑', aus:'澳洲', hk:'香港',
+      coldChain:'全程冷鏈', distance:'總距離', duration:'運輸時長', temp:'恆溫', hrs:'小時',
+      certMerchant:'漁跡認證商戶', merchantName:'陳記海鮮檔',
+      reviews:'則評價', view:'查看',
+      cookTitle:'專屬烹飪教學',
+      recipe1:'蒜蓉粉絲蒸龍蝦', recipe2:'芝士焗龍蝦',
+      recipe3:'龍蝦刺身處理',   recipe4:'上湯焗龍蝦',
+      exclusive:'尊享',
+      vipDesc:'稀缺海產預定 · 私廚上門 · 大師烹飪課',
+      joinVip:'立即加入 · HK$98/月',
+      rate:'評價此產品', share:'分享溯源',
+      poweredBy:'由 Fish n\' Check 提供技術支援',
+      scanNo:'掃碼編號',
+      // screen1
+      tagline:'一碰溯源 · 安心消費',
+      instruction:'靠近 NFC 標籤', sub:'Tap your phone on the seafood tag',
+      tapBtn:'📲 模擬一碰',
+      // overlay
+      reading:'讀取中…', readingSub:'正在驗證溯源資料', success:'驗證成功！'
+    },
+    'zh-CN': {
+      back:'返回', verified:'已认证 ✓',
+      origin:'澳洲进口 · 活体直送 · 冷链全程',
+      productName:'澳洲蓝龙虾 🦞', productNameEn:'Australian Blue Lobster',
+      weight:'重量', origin2:'产地', originVal:'西澳洲', freshness:'鲜活度',
+      traceTitle:'溯源履历', updated:'2分钟前更新',
+      step1:'源头捕捞',    step1d:'西澳洲 Geraldton 海域 · 33°S 114°E',
+      step2:'空运抵港',    step2d:'香港国际机场 · 冷链 4°C 全程',
+      step3:'海关检疫通过',step3d:'香港食环署 · 证书 HK-20260424-8823',
+      step4:'抵达零售点',  step4d:'中环街市 · 陈记海鲜档 B-12',
+      youAreHere:'刚刚 · YOU ARE HERE',
+      step5:'消费者查验',  step5d:'第 1,247 次扫码',
+      routeTitle:'运输路径', aus:'澳洲', hk:'香港',
+      coldChain:'全程冷链', distance:'总距离', duration:'运输时长', temp:'恒温', hrs:'小时',
+      certMerchant:'渔迹认证商户', merchantName:'陈记海鲜档',
+      reviews:'条评价', view:'查看',
+      cookTitle:'专属烹饪教学',
+      recipe1:'蒜蓉粉丝蒸龙虾', recipe2:'芝士焗龙虾',
+      recipe3:'龙虾刺身处理',   recipe4:'上汤焗龙虾',
+      exclusive:'尊享',
+      vipDesc:'稀缺海产预定 · 私厨上门 · 大师烹饪课',
+      joinVip:'立即加入 · HK$98/月',
+      rate:'评价此产品', share:'分享溯源',
+      poweredBy:'由 Fish n\' Check 提供技术支持',
+      scanNo:'扫码编号',
+      tagline:'一碰溯源 · 安心消费',
+      instruction:'靠近 NFC 标签', sub:'Tap your phone on the seafood tag',
+      tapBtn:'📲 模拟一碰',
+      reading:'读取中…', readingSub:'正在验证溯源资料', success:'验证成功！'
+    },
+    'en': {
+      back:'Back', verified:'Verified ✓',
+      origin:'Imported from Australia · Live Delivery · Full Cold Chain',
+      productName:'Australian Blue Lobster 🦞', productNameEn:'Australian Blue Lobster',
+      weight:'Weight', origin2:'Origin', originVal:'W. Australia', freshness:'Freshness',
+      traceTitle:'Trace Record', updated:'Updated 2 min ago',
+      step1:'Catch at Source',   step1d:'Geraldton Waters, W. Australia · 33°S 114°E',
+      step2:'Air Freight to HK', step2d:'Hong Kong Int\'l Airport · Cold Chain 4°C',
+      step3:'Customs Cleared',   step3d:'FEHD HK · Cert. HK-20260424-8823',
+      step4:'Arrived at Retail', step4d:'Central Market · Chan\'s Seafood Stall B-12',
+      youAreHere:'Just Now · YOU ARE HERE',
+      step5:'Consumer Scan',     step5d:'Scan #1,247',
+      routeTitle:'Shipping Route', aus:'Australia', hk:'Hong Kong',
+      coldChain:'Full Cold Chain', distance:'Distance', duration:'Transit', temp:'Temp', hrs:'hrs',
+      certMerchant:'Fish n\' Check Certified', merchantName:'Chan\'s Seafood',
+      reviews:'reviews', view:'View',
+      cookTitle:'Exclusive Cooking Guides',
+      recipe1:'Steamed Lobster w/ Garlic', recipe2:'Cheese Baked Lobster',
+      recipe3:'Lobster Sashimi Prep',      recipe4:'Braised Lobster in Broth',
+      exclusive:'Premium',
+      vipDesc:'Rare Seafood Pre-order · Private Chef · Master Classes',
+      joinVip:'Join VIP · HK$98/mo',
+      rate:'Rate Product', share:'Share Trace',
+      poweredBy:'Powered by Fish n\' Check',
+      scanNo:'Scan No.',
+      tagline:'Tap. Trace. Trust.',
+      instruction:'Tap your phone on the NFC tag', sub:'一碰溯源 · 安心消費',
+      tapBtn:'📲 Simulate Tap',
+      reading:'Reading…', readingSub:'Verifying trace data…', success:'Verified!'
+    }
+  };
+
+  let currentLang = 'zh-HK';
+
+  function setLang(lang) {
+    currentLang = lang;
+    const d = LANG[lang];
+
+    // update all .t spans
+    document.querySelectorAll('.t[data-key]').forEach(el => {
+      const k = el.getAttribute('data-key');
+      if (d[k] !== undefined) el.textContent = d[k];
+    });
+
+    // SVG tspan (route map)
+    document.querySelectorAll('tspan.t[data-key]').forEach(el => {
+      const k = el.getAttribute('data-key');
+      if (d[k] !== undefined) el.textContent = d[k];
+    });
+
+    // screen1 specific
+    document.getElementById('s1-tagline').textContent     = d.tagline;
+    document.getElementById('s1-instruction').textContent = d.instruction;
+    document.getElementById('s1-sub').textContent         = d.sub;
+    document.getElementById('s1-btn').textContent         = d.tapBtn;
+
+    // sync both lang switcher sets
+    ['','2'].forEach(suffix => {
+      ['zh-HK','zh-CN','en'].forEach(l => {
+        const btn = document.getElementById('btn'+suffix+'-'+l);
+        if (btn) {
+          btn.classList.toggle('active', l === lang);
+        }
+      });
+    });
+  }
+
+  /* ══ TRANSITION ══ */
+  const overlay      = document.getElementById('overlay');
+  const overlayIcon  = document.getElementById('overlayIcon');
+  const overlayText  = document.getElementById('overlayText');
+  const overlaySub   = document.getElementById('overlaySubText');
 
   function startTransition() {
-    // 1. show overlay
-    overlay.classList.add('active');
+    const d = LANG[currentLang];
     overlayIcon.textContent = '📡';
-    overlayText.textContent = '讀取中…';
+    overlayIcon.classList.remove('check-pop');
+    overlayText.textContent = d.reading;
+    overlaySub.textContent  = d.readingSub;
+    overlay.classList.add('active');
 
-    // 2. after 1.2s → show check
     setTimeout(() => {
       overlayIcon.textContent = '✅';
       overlayIcon.classList.add('check-pop');
-      overlayText.textContent = '驗證成功！';
+      overlayText.textContent = d.success;
+      overlaySub.textContent  = '';
     }, 1200);
 
-    // 3. after 2.2s → fade overlay out, show screen2
     setTimeout(() => {
       overlay.style.transition = 'opacity .5s';
       overlay.style.opacity = '0';
@@ -392,20 +532,22 @@
     document.getElementById('screen1').classList.add('hidden');
     const s2 = document.getElementById('screen2');
     s2.classList.remove('hidden');
-    // re-trigger animations
     s2.querySelectorAll('.fade-in').forEach(el => {
       el.style.animation = 'none';
       void el.offsetWidth;
       el.style.animation = '';
     });
-    window.scrollTo(0, 0);
+    window.scrollTo(0,0);
   }
 
   function showScreen1() {
     document.getElementById('screen2').classList.add('hidden');
     document.getElementById('screen1').classList.remove('hidden');
-    window.scrollTo(0, 0);
+    window.scrollTo(0,0);
   }
+
+  // init
+  setLang('zh-HK');
 </script>
 </body>
 </html>
